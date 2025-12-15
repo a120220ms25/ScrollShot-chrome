@@ -1,0 +1,66 @@
+{
+  "manifest_version": 3,
+  "name": "ScrollShot",
+  "version": "1.0.0",
+  "description": "高效能截圖工具，支援長截圖與即時註釋編輯",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "tabs",
+    "contextMenus",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "commands": {
+    "capture-visible": {
+      "suggested_key": {
+        "default": "Alt+Shift+1"
+      },
+      "description": "擷取可見區域"
+    },
+    "capture-full-page": {
+      "suggested_key": {
+        "default": "Alt+Shift+2"
+      },
+      "description": "擷取完整網頁"
+    },
+    "capture-area": {
+      "suggested_key": {
+        "default": "Alt+Shift+3"
+      },
+      "description": "選定區域截圖"
+    },
+    "capture-element": {
+      "suggested_key": {
+        "default": "Alt+Shift+4"
+      },
+      "description": "元素截圖"
+    }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["editor.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

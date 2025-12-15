@@ -1,0 +1,20 @@
+{
+  "name": "scrollshot-chrome-extension",
+  "version": "1.0.0",
+  "description": "高效能截圖工具，支援長截圖與即時註釋編輯",
+  "scripts": {
+    "create-icons": "node create-icons.js",
+    "test": "echo \"請使用瀏覽器測試擴充功能\""
+  },
+  "keywords": [
+    "screenshot",
+    "chrome-extension",
+    "annotation",
+    "full-page-screenshot"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "canvas": "^2.11.2"
+  }
+}

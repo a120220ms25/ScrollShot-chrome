@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ScrollShot 編輯器</title>
+  <link rel="stylesheet" href="editor.css">
+</head>
+<body>
+  <div class="editor-container">
+    <!-- 工具列 -->
+    <div class="toolbar">
+      <div class="toolbar-section">
+        <button class="tool-btn" id="selectTool" data-tool="select" title="選擇工具">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M3 3l14 7-6 1-1 6z"/>
+          </svg>
+        </button>
+        <button class="tool-btn" id="arrowTool" data-tool="arrow" title="箭頭">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 17l14-14M17 3v10M17 3H7"/>
+          </svg>
+        </button>
+        <button class="tool-btn" id="lineTool" data-tool="line" title="直線">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="17" x2="17" y2="3"/>
+          </svg>
+        </button>
+        <button class="tool-btn" id="rectTool" data-tool="rect" title="矩形">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="14" height="14"/>
+          </svg>
+        </button>
+        <button class="tool-btn" id="circleTool" data-tool="circle" title="圓形">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="10" cy="10" r="7"/>
+          </svg>
+        </button>
+        <button class="tool-btn" id="textTool" data-tool="text" title="文字">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M5 3h10v2H5zM8 5h4v10h3v2H5v-2h3z"/>
+          </svg>
+        </button>
+        <button class="tool-btn" id="pixelateTool" data-tool="pixelate" title="馬賽克">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <rect x="2" y="2" width="6" height="6"/><rect x="12" y="2" width="6" height="6"/>
+            <rect x="2" y="12" width="6" height="6"/><rect x="12" y="12" width="6" height="6"/>
+          </svg>
+        </button>
+        <button class="tool-btn" id="blurTool" data-tool="blur" title="模糊">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <circle cx="6" cy="6" r="2"/><circle cx="14" cy="6" r="2"/>
+            <circle cx="6" cy="14" r="2"/><circle cx="14" cy="14" r="2"/>
+            <circle cx="10" cy="10" r="2"/>
+          </svg>
+        </button>
+        <button class="tool-btn" id="cropTool" data-tool="crop" title="裁剪">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 2v13h13M15 18V5H2"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="toolbar-divider"></div>
+
+      <div class="toolbar-section">
+        <!-- 顏色選擇器 -->
+        <div class="color-picker-container">
+          <input type="color" id="colorPicker" value="#667eea" title="顏色">
+          <div class="color-preview" id="colorPreview"></div>
+        </div>
+
+        <!-- 線條粗細 -->
+        <select id="strokeWidth" title="線條粗細">
+          <option value="2">細</option>
+          <option value="4" selected>中</option>
+          <option value="6">粗</option>
+          <option value="8">特粗</option>
+        </select>
+
+        <!-- 字體大小 -->
+        <select id="fontSize" title="字體大小">
+          <option value="12">12</option>
+          <option value="14">14</option>
+          <option value="16" selected>16</option>
+          <option value="18">18</option>
+          <option value="20">20</option>
+          <option value="24">24</option>
+          <option value="28">28</option>
+          <option value="32">32</option>
+        </select>
+
+        <!-- 填充選項 -->
+        <label class="checkbox-label">
+          <input type="checkbox" id="fillShape">
+          <span>填充</span>
+        </label>
+      </div>
+
+      <div class="toolbar-divider"></div>
+
+      <div class="toolbar-section">
+        <button class="tool-btn" id="undoBtn" title="撤銷 (Ctrl+Z)">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M8 3H4v4M4 3l4 4M10 5a6 6 0 1 1 0 12 6 6 0 0 1 0-12z"/>
+          </svg>
+        </button>
+        <button class="tool-btn" id="redoBtn" title="重做 (Ctrl+Y)">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 3h4v4M16 3l-4 4M10 5a6 6 0 1 0 0 12 6 6 0 0 0 0-12z"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="toolbar-divider"></div>
+
+      <div class="toolbar-section">
+        <button class="action-btn" id="zoomInBtn" title="放大">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="9" cy="9" r="6"/><path d="M14 14l4 4M9 6v6M6 9h6"/>
+          </svg>
+        </button>
+        <button class="action-btn" id="zoomOutBtn" title="縮小">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="9" cy="9" r="6"/><path d="M14 14l4 4M6 9h6"/>
+          </svg>
+        </button>
+        <button class="action-btn" id="resetZoomBtn" title="重設縮放">100%</button>
+      </div>
+
+      <div class="toolbar-spacer"></div>
+
+      <div class="toolbar-section">
+        <button class="action-btn primary" id="copyBtn" title="複製到剪貼簿">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V2z"/>
+            <path d="M2 6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H2z" opacity="0.6"/>
+          </svg>
+          複製
+        </button>
+        <button class="action-btn success" id="downloadBtn" title="下載圖片">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 12l-4-4h3V2h2v6h3l-4 4z"/>
+            <path d="M1 14h14v2H1z"/>
+          </svg>
+          下載
+        </button>
+      </div>
+    </div>
+
+    <!-- 畫布區域 -->
+    <div class="canvas-container" id="canvasContainer">
+      <div class="canvas-wrapper" id="canvasWrapper">
+        <canvas id="mainCanvas"></canvas>
+        <canvas id="drawingCanvas"></canvas>
+      </div>
+    </div>
+
+    <!-- 文字輸入框（動態創建） -->
+    <div class="text-input-box" id="textInputBox" style="display: none;">
+      <textarea id="textInput" placeholder="輸入文字..."></textarea>
+      <div class="text-input-actions">
+        <button id="textConfirmBtn">確定</button>
+        <button id="textCancelBtn">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="editor.js"></script>
+</body>
+</html>

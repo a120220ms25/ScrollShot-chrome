@@ -1,0 +1,335 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+.editor-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* 工具列樣式 */
+.toolbar {
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
+}
+
+.toolbar-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background: #e0e0e0;
+}
+
+.toolbar-spacer {
+  flex: 1;
+}
+
+/* 工具按鈕 */
+.tool-btn,
+.action-btn {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  color: #333;
+  min-width: 36px;
+  height: 36px;
+}
+
+.tool-btn:hover,
+.action-btn:hover {
+  background: #f5f5f5;
+  border-color: #667eea;
+}
+
+.tool-btn.active {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.action-btn {
+  gap: 6px;
+  padding: 8px 12px;
+  min-width: auto;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.action-btn.primary {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.action-btn.primary:hover {
+  background: #5568d3;
+}
+
+.action-btn.success {
+  background: #48bb78;
+  color: white;
+  border-color: #48bb78;
+}
+
+.action-btn.success:hover {
+  background: #38a169;
+}
+
+/* 顏色選擇器 */
+.color-picker-container {
+  position: relative;
+  width: 36px;
+  height: 36px;
+}
+
+#colorPicker {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.color-preview {
+  width: 100%;
+  height: 100%;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  background: #667eea;
+  pointer-events: none;
+  transition: border-color 0.2s;
+}
+
+.color-picker-container:hover .color-preview {
+  border-color: #667eea;
+}
+
+/* 下拉選單 */
+select {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #333;
+}
+
+select:hover {
+  border-color: #667eea;
+}
+
+select:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+/* 複選框 */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background 0.2s;
+  user-select: none;
+}
+
+.checkbox-label:hover {
+  background: #f5f5f5;
+}
+
+.checkbox-label input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+.checkbox-label span {
+  font-size: 14px;
+  color: #333;
+}
+
+/* 畫布容器 */
+.canvas-container {
+  flex: 1;
+  overflow: auto;
+  background: #e5e5e5;
+  position: relative;
+}
+
+.canvas-wrapper {
+  position: relative;
+  display: inline-block;
+  margin: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s;
+  transform-origin: top left;
+}
+
+#mainCanvas {
+  display: block;
+  background: white;
+}
+
+#drawingCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  cursor: crosshair;
+}
+
+/* 文字輸入框 */
+.text-input-box {
+  position: absolute;
+  z-index: 1000;
+  background: white;
+  border: 2px solid #667eea;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+}
+
+#textInput {
+  width: 100%;
+  min-height: 60px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 8px;
+  font-family: inherit;
+  font-size: 16px;
+  resize: vertical;
+}
+
+#textInput:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.text-input-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  justify-content: flex-end;
+}
+
+.text-input-actions button {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+#textConfirmBtn {
+  background: #667eea;
+  color: white;
+}
+
+#textConfirmBtn:hover {
+  background: #5568d3;
+}
+
+#textCancelBtn {
+  background: #e0e0e0;
+  color: #333;
+}
+
+#textCancelBtn:hover {
+  background: #d0d0d0;
+}
+
+/* 裁剪框樣式 */
+.crop-overlay {
+  position: absolute;
+  border: 2px dashed #667eea;
+  background: rgba(102, 126, 234, 0.1);
+  cursor: move;
+}
+
+.crop-handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: white;
+  border: 2px solid #667eea;
+  border-radius: 50%;
+}
+
+.crop-handle.nw { top: -5px; left: -5px; cursor: nw-resize; }
+.crop-handle.ne { top: -5px; right: -5px; cursor: ne-resize; }
+.crop-handle.sw { bottom: -5px; left: -5px; cursor: sw-resize; }
+.crop-handle.se { bottom: -5px; right: -5px; cursor: se-resize; }
+.crop-handle.n { top: -5px; left: 50%; margin-left: -5px; cursor: n-resize; }
+.crop-handle.s { bottom: -5px; left: 50%; margin-left: -5px; cursor: s-resize; }
+.crop-handle.w { top: 50%; left: -5px; margin-top: -5px; cursor: w-resize; }
+.crop-handle.e { top: 50%; right: -5px; margin-top: -5px; cursor: e-resize; }
+
+/* 捲動條樣式 */
+.canvas-container::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.canvas-container::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+.canvas-container::-webkit-scrollbar-thumb {
+  background: #c0c0c0;
+  border-radius: 6px;
+}
+
+.canvas-container::-webkit-scrollbar-thumb:hover {
+  background: #a0a0a0;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .toolbar {
+    flex-wrap: wrap;
+    padding: 8px;
+  }
+
+  .toolbar-section {
+    gap: 4px;
+  }
+
+  .tool-btn,
+  .action-btn {
+    padding: 6px;
+    min-width: 32px;
+    height: 32px;
+  }
+}
