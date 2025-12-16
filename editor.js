@@ -184,12 +184,20 @@ function initToolbar() {
   document.getElementById('copyBtn').addEventListener('click', copyToClipboard);
   document.getElementById('downloadBtn').addEventListener('click', downloadImage);
 
-  // 快速文字按鈕
-  document.querySelectorAll('.quick-text-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const text = btn.dataset.text;
-      addQuickText(text);
-    });
+  // 快速數字下拉選單
+  document.getElementById('quickNumber').addEventListener('change', (e) => {
+    if (e.target.value) {
+      addQuickText(e.target.value);
+      e.target.value = ''; // 重置選單
+    }
+  });
+
+  // 快速步驟下拉選單
+  document.getElementById('quickStep').addEventListener('change', (e) => {
+    if (e.target.value) {
+      addQuickText(e.target.value);
+      e.target.value = ''; // 重置選單
+    }
   });
 
   // 文字輸入
@@ -366,6 +374,16 @@ function handleMouseMove(e) {
       drawingCtx.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
       drawingCtx.clearRect(startX, startY, currentX - startX, currentY - startY);
       break;
+    case 'eraser':
+      // 顯示橡皮擦預覽（白色半透明矩形）
+      drawingCtx.strokeStyle = '#ff0000';
+      drawingCtx.lineWidth = 2;
+      drawingCtx.setLineDash([5, 5]);
+      drawingCtx.strokeRect(startX, startY, currentX - startX, currentY - startY);
+      drawingCtx.setLineDash([]);
+      drawingCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+      drawingCtx.fillRect(startX, startY, currentX - startX, currentY - startY);
+      break;
   }
 }
 
@@ -425,6 +443,9 @@ function commitDrawing(x1, y1, x2, y2) {
       break;
     case 'crop':
       applyCrop(x1, y1, x2, y2);
+      break;
+    case 'eraser':
+      applyEraser(x1, y1, x2, y2);
       break;
   }
 
@@ -666,6 +687,17 @@ function applyCrop(x1, y1, x2, y2) {
   // 清空文字對象
   textObjects = [];
   selectedText = null;
+}
+
+// 應用橡皮擦
+function applyEraser(x1, y1, x2, y2) {
+  const startX = Math.min(x1, x2);
+  const startY = Math.min(y1, y2);
+  const width = Math.abs(x2 - x1);
+  const height = Math.abs(y2 - y1);
+
+  // 清除選定區域
+  mainCtx.clearRect(startX, startY, width, height);
 }
 
 // 顯示文字輸入框（新版：直接在畫面上編輯）

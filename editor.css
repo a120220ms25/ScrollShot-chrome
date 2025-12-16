@@ -334,47 +334,6 @@ select:focus {
   }
 }
 
-/* 快速文字按鈕 */
-.quick-text-section {
-  flex-direction: column;
-  gap: 4px;
-  align-items: flex-start;
-}
-
-.quick-text-group {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.quick-text-label {
-  font-size: 12px;
-  color: #666;
-  margin-right: 4px;
-}
-
-.quick-text-btn {
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  padding: 4px 8px;
-  cursor: pointer;
-  font-size: 12px;
-  color: #333;
-  transition: all 0.2s;
-  min-width: 28px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.quick-text-btn:hover {
-  background: #667eea;
-  color: white;
-  border-color: #667eea;
-}
-
 /* Emoji 選擇器 */
 .emoji-picker {
   position: absolute;
