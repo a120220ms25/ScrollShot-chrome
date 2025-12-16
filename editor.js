@@ -488,6 +488,8 @@ function showTextInput(x, y) {
     white-space: pre-wrap;
     word-wrap: break-word;
     min-width: 90px;
+    cursor: text;
+    user-select: text;
   `;
   textInput.textContent = '輸入文字...';
 
@@ -558,8 +560,14 @@ function showTextInput(x, y) {
   activeTextBox = textBoxContainer;
 
   // 選中文字
-  textInput.focus();
-  textInput.select();
+  setTimeout(() => {
+    textInput.focus();
+    const range = document.createRange();
+    range.selectNodeContents(textInput);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }, 10);
 
   // 事件處理
   let dragStartX, dragStartY, boxStartX, boxStartY;
