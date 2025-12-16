@@ -157,6 +157,14 @@ function initToolbar() {
   document.getElementById('copyBtn').addEventListener('click', copyToClipboard);
   document.getElementById('downloadBtn').addEventListener('click', downloadImage);
 
+  // 快速文字按鈕
+  document.querySelectorAll('.quick-text-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const text = btn.dataset.text;
+      addQuickText(text);
+    });
+  });
+
   // 文字輸入
   document.getElementById('textConfirmBtn').addEventListener('click', confirmText);
   document.getElementById('textCancelBtn').addEventListener('click', cancelText);
@@ -696,6 +704,28 @@ function cancelText() {
     activeTextBox.remove();
     activeTextBox = null;
   }
+}
+
+// 添加快速文字
+function addQuickText(text) {
+  // 計算畫布中心位置
+  const canvasRect = drawingCanvas.getBoundingClientRect();
+  const centerX = (canvasRect.width / 2) / zoomLevel;
+  const centerY = (canvasRect.height / 2) / zoomLevel;
+
+  // 直接添加到文字對象數組（不彈出輸入框）
+  textObjects.push({
+    text: text,
+    x: centerX - 20,
+    y: centerY - 20,
+    fontSize: currentFontSize,
+    color: currentColor
+  });
+
+  // 自動選中新添加的文字
+  selectedText = textObjects.length - 1;
+
+  redrawCanvas();
 }
 
 // 保存狀態到歷史記錄
