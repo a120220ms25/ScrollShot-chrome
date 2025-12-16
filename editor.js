@@ -591,12 +591,15 @@ function showTextInput(x, y) {
     selection.addRange(range);
   }, 50);
 
-  // Esc 取消
+  // 鍵盤事件
   textInput.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       textBoxContainer.remove();
       activeTextBox = null;
       e.stopPropagation();
+    } else if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      confirmEditableText(textBoxContainer, textInput);
     }
   });
 
