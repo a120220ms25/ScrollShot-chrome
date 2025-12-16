@@ -468,14 +468,14 @@ function showTextInput(x, y) {
     border: 2px dashed ${currentColor};
     background: rgba(255, 255, 255, 0.9);
     padding: 5px;
-    cursor: move;
     z-index: 1000;
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    pointer-events: auto;
   `;
 
   const textInput = document.createElement('div');
   textInput.className = 'text-content';
-  textInput.contentEditable = true;
+  textInput.contentEditable = 'true';
   textInput.style.cssText = `
     outline: none;
     color: ${currentColor};
@@ -486,6 +486,7 @@ function showTextInput(x, y) {
     min-width: 90px;
     cursor: text;
     user-select: text;
+    pointer-events: auto;
   `;
   textInput.textContent = '輸入文字...';
 
@@ -497,7 +498,7 @@ function showTextInput(x, y) {
   textBoxContainer.dataset.y = y;
   activeTextBox = textBoxContainer;
 
-  // 選中文字
+  // 聚焦並選中文字
   setTimeout(() => {
     textInput.focus();
     const range = document.createRange();
@@ -505,7 +506,7 @@ function showTextInput(x, y) {
     const selection = window.getSelection();
     selection.removeAllRanges();
     selection.addRange(range);
-  }, 10);
+  }, 50);
 
   // Esc 取消
   textInput.addEventListener('keydown', (e) => {
@@ -526,7 +527,7 @@ function showTextInput(x, y) {
 
   setTimeout(() => {
     document.addEventListener('click', handleClickOutside);
-  }, 100);
+  }, 200);
 }
 
 // 確認可編輯文字
