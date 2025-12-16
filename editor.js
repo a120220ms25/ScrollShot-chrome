@@ -205,15 +205,24 @@ function handleMouseDown(e) {
   for (let i = textObjects.length - 1; i >= 0; i--) {
     const textObj = textObjects[i];
     drawingCtx.font = `${textObj.fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
-    const metrics = drawingCtx.measureText(textObj.text);
+
     const lines = textObj.text.split('\n');
-    const width = metrics.width;
-    const height = textObj.fontSize * 1.2 * lines.length;
+    const lineHeight = textObj.fontSize * 1.2;
+
+    // 計算最大寬度（測量所有行）
+    let maxWidth = 0;
+    lines.forEach(line => {
+      const lineWidth = drawingCtx.measureText(line).width;
+      if (lineWidth > maxWidth) maxWidth = lineWidth;
+    });
+
+    const width = maxWidth;
+    const height = lineHeight * lines.length;
 
     // 檢查調整大小控制點
     if (selectedText === i &&
-        startX >= textObj.x + width && startX <= textObj.x + width + 20 &&
-        startY >= textObj.y + height && startY <= textObj.y + height + 20) {
+        startX >= textObj.x + width + 5 && startX <= textObj.x + width + 15 &&
+        startY >= textObj.y + height + 5 && startY <= textObj.y + height + 15) {
       isResizingText = true;
       dragStartPos = { x: startX, y: startY };
       textStartSize = textObj.fontSize;
@@ -649,9 +658,15 @@ function redrawCanvas() {
 
     // 如果被選中，顯示邊框和控制點
     if (selectedText === index) {
-      const metrics = drawingCtx.measureText(textObj.text);
-      const width = metrics.width;
-      const height = textObj.fontSize * 1.2 * lines.length;
+      // 計算最大寬度（測量所有行）
+      let maxWidth = 0;
+      lines.forEach(line => {
+        const lineWidth = drawingCtx.measureText(line).width;
+        if (lineWidth > maxWidth) maxWidth = lineWidth;
+      });
+
+      const width = maxWidth;
+      const height = lineHeight * lines.length;
 
       drawingCtx.strokeStyle = '#667eea';
       drawingCtx.lineWidth = 2;
