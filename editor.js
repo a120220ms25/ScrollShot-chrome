@@ -326,6 +326,19 @@ function handleMouseMove(e) {
     case 'blur':
       drawRect(drawingCtx, startX, startY, currentX - startX, currentY - startY);
       break;
+    case 'crop':
+      // 顯示裁剪框預覽
+      drawingCtx.strokeStyle = '#667eea';
+      drawingCtx.lineWidth = 2;
+      drawingCtx.setLineDash([5, 5]);
+      drawingCtx.strokeRect(startX, startY, currentX - startX, currentY - startY);
+      drawingCtx.setLineDash([]);
+
+      // 顯示半透明遮罩
+      drawingCtx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      drawingCtx.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+      drawingCtx.clearRect(startX, startY, currentX - startX, currentY - startY);
+      break;
   }
 }
 
@@ -382,6 +395,9 @@ function commitDrawing(x1, y1, x2, y2) {
       break;
     case 'blur':
       applyBlur(x1, y1, x2, y2);
+      break;
+    case 'crop':
+      applyCrop(x1, y1, x2, y2);
       break;
   }
 
@@ -543,6 +559,41 @@ function boxBlur(imageData, radius) {
   }
 
   return new ImageData(output, width, height);
+}
+
+// 應用裁剪
+function applyCrop(x1, y1, x2, y2) {
+  const startX = Math.min(x1, x2);
+  const startY = Math.min(y1, y2);
+  const width = Math.abs(x2 - x1);
+  const height = Math.abs(y2 - y1);
+
+  // 確保裁剪區域有效
+  if (width < 10 || height < 10) {
+    return;
+  }
+
+  // 先固化所有文字對象
+  commitTextObjects();
+
+  // 獲取裁剪區域的圖像數據
+  const imageData = mainCtx.getImageData(startX, startY, width, height);
+
+  // 調整畫布大小為裁剪區域
+  mainCanvas.width = width;
+  mainCanvas.height = height;
+  drawingCanvas.width = width;
+  drawingCanvas.height = height;
+
+  // 將裁剪的圖像繪製到新畫布
+  mainCtx.putImageData(imageData, 0, 0);
+
+  // 清空繪圖層
+  drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+
+  // 清空文字對象
+  textObjects = [];
+  selectedText = null;
 }
 
 // 顯示文字輸入框（新版：直接在畫面上編輯）
