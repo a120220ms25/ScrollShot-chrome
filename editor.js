@@ -695,9 +695,29 @@ function applyEraser(x1, y1, x2, y2) {
   const startY = Math.min(y1, y2);
   const width = Math.abs(x2 - x1);
   const height = Math.abs(y2 - y1);
+  const endX = startX + width;
+  const endY = startY + height;
 
-  // 清除選定區域
+  // 清除主畫布選定區域
   mainCtx.clearRect(startX, startY, width, height);
+
+  // 移除被擦除區域內的文字對象
+  textObjects = textObjects.filter(textObj => {
+    // 檢查文字對象是否在擦除區域內
+    const textX = textObj.x;
+    const textY = textObj.y;
+
+    // 如果文字的任何部分在擦除區域內，則移除
+    return !(textX >= startX && textX <= endX && textY >= startY && textY <= endY);
+  });
+
+  // 如果選中的文字被擦除，取消選中
+  if (selectedText !== null && selectedText >= textObjects.length) {
+    selectedText = null;
+  }
+
+  // 重繪繪圖層
+  redrawCanvas();
 }
 
 // 顯示文字輸入框（新版：直接在畫面上編輯）
