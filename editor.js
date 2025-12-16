@@ -23,6 +23,13 @@ let selectedObject = null;
 
 // 文字框相關
 let activeTextBox = null;
+let textObjects = [];
+let selectedText = null;
+let isDraggingText = false;
+let isResizingText = false;
+let dragStartPos = { x: 0, y: 0 };
+let textStartPos = { x: 0, y: 0 };
+let textStartSize = 0;
 
 // 初始化
 document.addEventListener('DOMContentLoaded', async () => {
@@ -193,6 +200,45 @@ function handleMouseDown(e) {
   startX = (e.clientX - rect.left) / zoomLevel;
   startY = (e.clientY - rect.top) / zoomLevel;
 
+  // 檢查是否點擊了文字對象
+  let clickedText = false;
+  for (let i = textObjects.length - 1; i >= 0; i--) {
+    const textObj = textObjects[i];
+    drawingCtx.font = `${textObj.fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+    const metrics = drawingCtx.measureText(textObj.text);
+    const lines = textObj.text.split('\n');
+    const width = metrics.width;
+    const height = textObj.fontSize * 1.2 * lines.length;
+
+    // 檢查調整大小控制點
+    if (selectedText === i &&
+        startX >= textObj.x + width && startX <= textObj.x + width + 20 &&
+        startY >= textObj.y + height && startY <= textObj.y + height + 20) {
+      isResizingText = true;
+      dragStartPos = { x: startX, y: startY };
+      textStartSize = textObj.fontSize;
+      clickedText = true;
+      return;
+    }
+
+    // 檢查文字區域
+    if (startX >= textObj.x - 5 && startX <= textObj.x + width + 5 &&
+        startY >= textObj.y && startY <= textObj.y + height + 10) {
+      selectedText = i;
+      isDraggingText = true;
+      dragStartPos = { x: startX, y: startY };
+      textStartPos = { x: textObj.x, y: textObj.y };
+      redrawCanvas();
+      clickedText = true;
+      return;
+    }
+  }
+
+  if (!clickedText) {
+    selectedText = null;
+    redrawCanvas();
+  }
+
   if (currentTool === 'text') {
     showTextInput(startX, startY);
     return;
@@ -207,14 +253,34 @@ function handleMouseDown(e) {
 
 // 滑鼠移動
 function handleMouseMove(e) {
-  if (!isDrawing) return;
-
   const rect = drawingCanvas.getBoundingClientRect();
   const currentX = (e.clientX - rect.left) / zoomLevel;
   const currentY = (e.clientY - rect.top) / zoomLevel;
 
+  // 處理文字拖動
+  if (isDraggingText && selectedText !== null) {
+    const dx = currentX - dragStartPos.x;
+    const dy = currentY - dragStartPos.y;
+    textObjects[selectedText].x = textStartPos.x + dx;
+    textObjects[selectedText].y = textStartPos.y + dy;
+    redrawCanvas();
+    return;
+  }
+
+  // 處理文字調整大小
+  if (isResizingText && selectedText !== null) {
+    const dx = currentX - dragStartPos.x;
+    const newSize = Math.max(12, Math.min(72, textStartSize + dx));
+    textObjects[selectedText].fontSize = newSize;
+    redrawCanvas();
+    return;
+  }
+
+  if (!isDrawing) return;
+
   // 清除繪圖層
   drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+  redrawCanvas();
 
   // 繪製預覽
   drawingCtx.strokeStyle = currentColor;
@@ -248,6 +314,13 @@ function handleMouseMove(e) {
 
 // 滑鼠放開
 function handleMouseUp(e) {
+  // 處理文字拖動結束
+  if (isDraggingText || isResizingText) {
+    isDraggingText = false;
+    isResizingText = false;
+    return;
+  }
+
   if (!isDrawing) return;
   isDrawing = false;
 
@@ -258,8 +331,9 @@ function handleMouseUp(e) {
   // 將繪製內容固化到主畫布
   commitDrawing(startX, startY, endX, endY);
 
-  // 清除繪圖層
+  // 清除繪圖層並重繪文字
   drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+  redrawCanvas();
 }
 
 // 固化繪製
@@ -535,32 +609,59 @@ function confirmEditableText(textBoxContainer, textInput) {
   const text = textInput.textContent.trim();
 
   if (text && text !== '輸入文字...') {
-    // 計算實際位置（考慮縮放）
     const rect = textBoxContainer.getBoundingClientRect();
     const canvasRect = drawingCanvas.getBoundingClientRect();
 
     const x = (rect.left - canvasRect.left) / zoomLevel;
-    const y = (rect.top - canvasRect.top + 20) / zoomLevel; // +20 調整基線
+    const y = (rect.top - canvasRect.top) / zoomLevel;
 
-    // 繪製文字到主畫布
-    mainCtx.fillStyle = currentColor;
-    mainCtx.font = `${currentFontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
-
-    // 處理多行文字
-    const lines = text.split('\n');
-    const lineHeight = currentFontSize * 1.2;
-
-    lines.forEach((line, index) => {
-      mainCtx.fillText(line, x, y + (index * lineHeight));
+    // 添加到文字對象數組
+    textObjects.push({
+      text: text,
+      x: x,
+      y: y,
+      fontSize: currentFontSize,
+      color: currentColor
     });
 
-    // 保存狀態
-    saveState();
+    redrawCanvas();
   }
 
-  // 移除文字框
   textBoxContainer.remove();
   activeTextBox = null;
+}
+
+// 重繪畫布
+function redrawCanvas() {
+  drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+
+  // 繪製所有文字對象
+  textObjects.forEach((textObj, index) => {
+    drawingCtx.fillStyle = textObj.color;
+    drawingCtx.font = `${textObj.fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+
+    const lines = textObj.text.split('\n');
+    const lineHeight = textObj.fontSize * 1.2;
+
+    lines.forEach((line, i) => {
+      drawingCtx.fillText(line, textObj.x, textObj.y + textObj.fontSize + (i * lineHeight));
+    });
+
+    // 如果被選中，顯示邊框和控制點
+    if (selectedText === index) {
+      const metrics = drawingCtx.measureText(textObj.text);
+      const width = metrics.width;
+      const height = textObj.fontSize * 1.2 * lines.length;
+
+      drawingCtx.strokeStyle = '#667eea';
+      drawingCtx.lineWidth = 2;
+      drawingCtx.strokeRect(textObj.x - 5, textObj.y, width + 10, height + 10);
+
+      // 調整大小控制點
+      drawingCtx.fillStyle = '#667eea';
+      drawingCtx.fillRect(textObj.x + width + 5, textObj.y + height + 5, 10, 10);
+    }
+  });
 }
 
 // 確認文字輸入（保留舊的接口）
@@ -678,6 +779,7 @@ function updateZoom() {
 // 複製到剪貼簿
 async function copyToClipboard() {
   try {
+    commitTextObjects();
     const blob = await new Promise(resolve => {
       mainCanvas.toBlob(resolve, 'image/png');
     });
@@ -695,6 +797,7 @@ async function copyToClipboard() {
 
 // 下載圖片
 function downloadImage() {
+  commitTextObjects();
   const dataUrl = mainCanvas.toDataURL('image/png');
   const link = document.createElement('a');
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
@@ -703,6 +806,26 @@ function downloadImage() {
   link.click();
 
   showNotification('圖片已下載');
+}
+
+// 將文字對象固化到主畫布
+function commitTextObjects() {
+  textObjects.forEach(textObj => {
+    mainCtx.fillStyle = textObj.color;
+    mainCtx.font = `${textObj.fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+
+    const lines = textObj.text.split('\n');
+    const lineHeight = textObj.fontSize * 1.2;
+
+    lines.forEach((line, i) => {
+      mainCtx.fillText(line, textObj.x, textObj.y + textObj.fontSize + (i * lineHeight));
+    });
+  });
+
+  textObjects = [];
+  selectedText = null;
+  drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+  saveState();
 }
 
 // 顯示通知
