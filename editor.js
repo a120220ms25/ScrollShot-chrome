@@ -2,7 +2,7 @@
 
 // 全局變數
 let mainCanvas, drawingCanvas, mainCtx, drawingCtx;
-let currentTool = 'select';
+let currentTool = 'arrow';
 let isDrawing = false;
 let startX, startY;
 let currentColor = '#667eea';
