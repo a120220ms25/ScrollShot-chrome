@@ -562,7 +562,7 @@ function showTextInput(x, y) {
   textInput.style.cssText = `
     outline: none;
     color: ${currentColor};
-    font-size: ${currentFontSize}px;
+    font-size: ${currentFontSize * zoomLevel}px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     white-space: pre-wrap;
     word-wrap: break-word;
