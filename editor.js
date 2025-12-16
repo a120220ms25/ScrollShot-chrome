@@ -23,10 +23,6 @@ let selectedObject = null;
 
 // 文字框相關
 let activeTextBox = null;
-let isDraggingText = false;
-let isResizingText = false;
-let textDragStart = { x: 0, y: 0 };
-let textBoxes = [];
 
 // 初始化
 document.addEventListener('DOMContentLoaded', async () => {
@@ -493,65 +489,7 @@ function showTextInput(x, y) {
   `;
   textInput.textContent = '輸入文字...';
 
-  // 添加控制按鈕
-  const controls = document.createElement('div');
-  controls.className = 'text-controls';
-  controls.style.cssText = `
-    position: absolute;
-    bottom: -35px;
-    left: 0;
-    display: flex;
-    gap: 5px;
-    background: white;
-    padding: 5px;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  `;
-
-  const confirmBtn = document.createElement('button');
-  confirmBtn.textContent = '✓';
-  confirmBtn.style.cssText = `
-    padding: 5px 10px;
-    background: #48bb78;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-  `;
-
-  const cancelBtn = document.createElement('button');
-  cancelBtn.textContent = '✕';
-  cancelBtn.style.cssText = `
-    padding: 5px 10px;
-    background: #f56565;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-  `;
-
-  // 添加調整大小的控制點
-  const resizeHandle = document.createElement('div');
-  resizeHandle.className = 'resize-handle';
-  resizeHandle.style.cssText = `
-    position: absolute;
-    bottom: -5px;
-    right: -5px;
-    width: 10px;
-    height: 10px;
-    background: ${currentColor};
-    border: 1px solid white;
-    cursor: nwse-resize;
-    z-index: 1001;
-  `;
-
-  controls.appendChild(confirmBtn);
-  controls.appendChild(cancelBtn);
   textBoxContainer.appendChild(textInput);
-  textBoxContainer.appendChild(controls);
-  textBoxContainer.appendChild(resizeHandle);
   document.body.appendChild(textBoxContainer);
 
   // 儲存數據
@@ -569,77 +507,26 @@ function showTextInput(x, y) {
     selection.addRange(range);
   }, 10);
 
-  // 事件處理
-  let dragStartX, dragStartY, boxStartX, boxStartY;
-  let resizeStartX, resizeStartY, boxStartWidth, boxStartHeight;
-
-  // 拖動文字框
-  textBoxContainer.addEventListener('mousedown', (e) => {
-    if (e.target === textInput || e.target === resizeHandle) return;
-
-    isDraggingText = true;
-    dragStartX = e.clientX;
-    dragStartY = e.clientY;
-    const rect = textBoxContainer.getBoundingClientRect();
-    boxStartX = rect.left;
-    boxStartY = rect.top;
-    e.preventDefault();
-  });
-
-  // 調整大小
-  resizeHandle.addEventListener('mousedown', (e) => {
-    isResizingText = true;
-    resizeStartX = e.clientX;
-    resizeStartY = e.clientY;
-    const rect = textBoxContainer.getBoundingClientRect();
-    boxStartWidth = rect.width;
-    boxStartHeight = rect.height;
-    e.stopPropagation();
-    e.preventDefault();
-  });
-
-  document.addEventListener('mousemove', handleTextDrag);
-  document.addEventListener('mouseup', handleTextDragEnd);
-
-  // 確認按鈕
-  confirmBtn.addEventListener('click', () => {
-    confirmEditableText(textBoxContainer, textInput);
-  });
-
-  // 取消按鈕
-  cancelBtn.addEventListener('click', () => {
-    textBoxContainer.remove();
-    activeTextBox = null;
-  });
-
-  // Enter 確認，Esc 取消
+  // Esc 取消
   textInput.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       textBoxContainer.remove();
       activeTextBox = null;
+      e.stopPropagation();
     }
   });
 
-  function handleTextDrag(e) {
-    if (isDraggingText) {
-      const dx = e.clientX - dragStartX;
-      const dy = e.clientY - dragStartY;
-      textBoxContainer.style.left = (boxStartX + dx) + 'px';
-      textBoxContainer.style.top = (boxStartY + dy) + 'px';
-    } else if (isResizingText) {
-      const dx = e.clientX - resizeStartX;
-      const dy = e.clientY - resizeStartY;
-      const newWidth = Math.max(100, boxStartWidth + dx);
-      const newHeight = Math.max(30, boxStartHeight + dy);
-      textBoxContainer.style.width = newWidth + 'px';
-      textBoxContainer.style.height = newHeight + 'px';
+  // 點擊外部確認文字
+  const handleClickOutside = (e) => {
+    if (!textBoxContainer.contains(e.target)) {
+      confirmEditableText(textBoxContainer, textInput);
+      document.removeEventListener('click', handleClickOutside);
     }
-  }
+  };
 
-  function handleTextDragEnd() {
-    isDraggingText = false;
-    isResizingText = false;
-  }
+  setTimeout(() => {
+    document.addEventListener('click', handleClickOutside);
+  }, 100);
 }
 
 // 確認可編輯文字
