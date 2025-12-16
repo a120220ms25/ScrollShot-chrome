@@ -8,6 +8,8 @@ let startX, startY;
 let currentColor = '#667eea';
 let currentStrokeWidth = 4;
 let currentFontSize = 16;
+let currentFontFamily = 'system';
+let currentArrowStyle = 'normal';
 let fillShape = false;
 let zoomLevel = 1;
 
@@ -134,9 +136,34 @@ function initToolbar() {
     currentStrokeWidth = parseInt(e.target.value);
   });
 
+  // 字體樣式
+  document.getElementById('fontFamily').addEventListener('change', (e) => {
+    currentFontFamily = e.target.value;
+  });
+
   // 字體大小
   document.getElementById('fontSize').addEventListener('change', (e) => {
     currentFontSize = parseInt(e.target.value);
+  });
+
+  // 箭頭樣式
+  document.getElementById('arrowStyle').addEventListener('change', (e) => {
+    currentArrowStyle = e.target.value;
+  });
+
+  // Emoji 按鈕
+  document.getElementById('emojiBtn').addEventListener('click', () => {
+    const picker = document.getElementById('emojiPicker');
+    picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
+  });
+
+  // Emoji 選擇
+  document.querySelectorAll('.emoji-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const emoji = btn.dataset.emoji;
+      addQuickText(emoji);
+      document.getElementById('emojiPicker').style.display = 'none';
+    });
   });
 
   // 填充選項
@@ -212,7 +239,7 @@ function handleMouseDown(e) {
   let clickedText = false;
   for (let i = textObjects.length - 1; i >= 0; i--) {
     const textObj = textObjects[i];
-    drawingCtx.font = `${textObj.fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+    drawingCtx.font = `${textObj.fontSize}px ${getFontFamily(textObj.fontFamily)}`;
 
     const lines = textObj.text.split('\n');
     const lineHeight = textObj.fontSize * 1.2;
@@ -405,18 +432,59 @@ function commitDrawing(x1, y1, x2, y2) {
   saveState();
 }
 
+// 獲取字體家族字符串
+function getFontFamily(fontFamilyCode) {
+  const fontMap = {
+    'system': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    'serif': 'Georgia, "Times New Roman", Times, serif',
+    'monospace': '"Courier New", Courier, monospace',
+    'cursive': '"Comic Sans MS", cursive',
+    'fantasy': 'Impact, fantasy'
+  };
+  const code = fontFamilyCode || currentFontFamily;
+  return fontMap[code] || fontMap['system'];
+}
+
 // 繪製箭頭
 function drawArrow(ctx, x1, y1, x2, y2) {
-  const headLength = 15;
+  const headLength = currentArrowStyle === 'thick' ? 20 : 15;
   const angle = Math.atan2(y2 - y1, x2 - x1);
 
-  // 繪製線條
+  // 設置線條樣式
+  if (currentArrowStyle === 'dashed') {
+    ctx.setLineDash([10, 5]);
+  } else {
+    ctx.setLineDash([]);
+  }
+
+  // 設置線條寬度
+  const originalWidth = ctx.lineWidth;
+  if (currentArrowStyle === 'thick' || currentArrowStyle === 'double') {
+    ctx.lineWidth = originalWidth * 1.5;
+  }
+
+  // 繪製主線條
   ctx.beginPath();
   ctx.moveTo(x1, y1);
   ctx.lineTo(x2, y2);
   ctx.stroke();
 
-  // 繪製箭頭
+  // 繪製雙線箭頭的第二條線
+  if (currentArrowStyle === 'double') {
+    const offset = 5;
+    const perpAngle = angle + Math.PI / 2;
+    const x1b = x1 + offset * Math.cos(perpAngle);
+    const y1b = y1 + offset * Math.sin(perpAngle);
+    const x2b = x2 + offset * Math.cos(perpAngle);
+    const y2b = y2 + offset * Math.sin(perpAngle);
+
+    ctx.beginPath();
+    ctx.moveTo(x1b, y1b);
+    ctx.lineTo(x2b, y2b);
+    ctx.stroke();
+  }
+
+  // 繪製箭頭頭部
   ctx.beginPath();
   ctx.moveTo(x2, y2);
   ctx.lineTo(
@@ -429,6 +497,10 @@ function drawArrow(ctx, x1, y1, x2, y2) {
     y2 - headLength * Math.sin(angle + Math.PI / 6)
   );
   ctx.stroke();
+
+  // 恢復原始線條寬度
+  ctx.lineWidth = originalWidth;
+  ctx.setLineDash([]);
 }
 
 // 繪製矩形
@@ -622,7 +694,7 @@ function showTextInput(x, y) {
     outline: none;
     color: ${currentColor};
     font-size: ${currentFontSize * zoomLevel}px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: ${getFontFamily()};
     white-space: pre-wrap;
     word-wrap: break-word;
     min-width: 90px;
@@ -692,7 +764,8 @@ function confirmEditableText(textBoxContainer, textInput) {
       x: x,
       y: y,
       fontSize: currentFontSize,
-      color: currentColor
+      color: currentColor,
+      fontFamily: currentFontFamily
     });
 
     redrawCanvas();
@@ -709,7 +782,7 @@ function redrawCanvas() {
   // 繪製所有文字對象
   textObjects.forEach((textObj, index) => {
     drawingCtx.fillStyle = textObj.color;
-    drawingCtx.font = `${textObj.fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+    drawingCtx.font = `${textObj.fontSize}px ${getFontFamily(textObj.fontFamily)}`;
 
     const lines = textObj.text.split('\n');
     const lineHeight = textObj.fontSize * 1.2;
@@ -770,7 +843,8 @@ function addQuickText(text) {
     x: centerX - 20,
     y: centerY - 20,
     fontSize: currentFontSize,
-    color: currentColor
+    color: currentColor,
+    fontFamily: currentFontFamily
   });
 
   // 自動選中新添加的文字
@@ -911,7 +985,7 @@ function downloadImage() {
 function commitTextObjects() {
   textObjects.forEach(textObj => {
     mainCtx.fillStyle = textObj.color;
-    mainCtx.font = `${textObj.fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+    mainCtx.font = `${textObj.fontSize}px ${getFontFamily(textObj.fontFamily)}`;
 
     const lines = textObj.text.split('\n');
     const lineHeight = textObj.fontSize * 1.2;

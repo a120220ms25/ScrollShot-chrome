@@ -78,6 +78,15 @@
           <option value="8">特粗</option>
         </select>
 
+        <!-- 字體樣式 -->
+        <select id="fontFamily" title="字體樣式">
+          <option value="system">系統字體</option>
+          <option value="serif">襯線體</option>
+          <option value="monospace">等寬字體</option>
+          <option value="cursive">手寫體</option>
+          <option value="fantasy">藝術字體</option>
+        </select>
+
         <!-- 字體大小 -->
         <select id="fontSize" title="字體大小">
           <option value="12">12</option>
@@ -89,6 +98,17 @@
           <option value="28">28</option>
           <option value="32">32</option>
         </select>
+
+        <!-- 箭頭樣式 -->
+        <select id="arrowStyle" title="箭頭樣式">
+          <option value="normal">→ 標準箭頭</option>
+          <option value="thick">⇒ 粗箭頭</option>
+          <option value="double">⇛ 雙線箭頭</option>
+          <option value="dashed">⤍ 虛線箭頭</option>
+        </select>
+
+        <!-- Emoji 按鈕 -->
+        <button class="tool-btn" id="emojiBtn" title="插入 Emoji">😀</button>
 
         <!-- 填充選項 -->
         <label class="checkbox-label">
@@ -176,6 +196,49 @@
           </svg>
           下載
         </button>
+      </div>
+    </div>
+
+    <!-- Emoji 選擇器 -->
+    <div class="emoji-picker" id="emojiPicker" style="display: none;">
+      <div class="emoji-picker-header">選擇 Emoji</div>
+      <div class="emoji-grid">
+        <button class="emoji-item" data-emoji="😀">😀</button>
+        <button class="emoji-item" data-emoji="😃">😃</button>
+        <button class="emoji-item" data-emoji="😄">😄</button>
+        <button class="emoji-item" data-emoji="😁">😁</button>
+        <button class="emoji-item" data-emoji="😊">😊</button>
+        <button class="emoji-item" data-emoji="😍">😍</button>
+        <button class="emoji-item" data-emoji="🥰">🥰</button>
+        <button class="emoji-item" data-emoji="😘">😘</button>
+        <button class="emoji-item" data-emoji="😎">😎</button>
+        <button class="emoji-item" data-emoji="🤩">🤩</button>
+        <button class="emoji-item" data-emoji="🤔">🤔</button>
+        <button class="emoji-item" data-emoji="😅">😅</button>
+        <button class="emoji-item" data-emoji="😂">😂</button>
+        <button class="emoji-item" data-emoji="🤣">🤣</button>
+        <button class="emoji-item" data-emoji="😇">😇</button>
+        <button class="emoji-item" data-emoji="😉">😉</button>
+        <button class="emoji-item" data-emoji="👍">👍</button>
+        <button class="emoji-item" data-emoji="👎">👎</button>
+        <button class="emoji-item" data-emoji="👏">👏</button>
+        <button class="emoji-item" data-emoji="🙏">🙏</button>
+        <button class="emoji-item" data-emoji="💪">💪</button>
+        <button class="emoji-item" data-emoji="✌️">✌️</button>
+        <button class="emoji-item" data-emoji="🤝">🤝</button>
+        <button class="emoji-item" data-emoji="👌">👌</button>
+        <button class="emoji-item" data-emoji="❤️">❤️</button>
+        <button class="emoji-item" data-emoji="💯">💯</button>
+        <button class="emoji-item" data-emoji="🔥">🔥</button>
+        <button class="emoji-item" data-emoji="⭐">⭐</button>
+        <button class="emoji-item" data-emoji="✅">✅</button>
+        <button class="emoji-item" data-emoji="❌">❌</button>
+        <button class="emoji-item" data-emoji="⚠️">⚠️</button>
+        <button class="emoji-item" data-emoji="💡">💡</button>
+        <button class="emoji-item" data-emoji="🎉">🎉</button>
+        <button class="emoji-item" data-emoji="🎊">🎊</button>
+        <button class="emoji-item" data-emoji="🚀">🚀</button>
+        <button class="emoji-item" data-emoji="💻">💻</button>
       </div>
     </div>
 
