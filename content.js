@@ -104,6 +104,15 @@ async function captureFullPage() {
       // 等待頁面穩定
       await new Promise(resolve => setTimeout(resolve, 300));
 
+      // 暫時隱藏載入覆蓋層（避免被截取到）
+      const loadingOverlay = document.getElementById('scrollshot-loading-overlay');
+      if (loadingOverlay) {
+        loadingOverlay.style.display = 'none';
+      }
+
+      // 等待瀏覽器重新渲染
+      await new Promise(resolve => setTimeout(resolve, 50));
+
       // 擷取當前視窗（使用實際像素）
       const tempCanvas = document.createElement('canvas');
       tempCanvas.width = viewportWidth * dpr;
@@ -111,6 +120,11 @@ async function captureFullPage() {
       const tempCtx = tempCanvas.getContext('2d');
 
       await captureCurrentView(tempCanvas, tempCtx, dpr);
+
+      // 恢復顯示載入覆蓋層
+      if (loadingOverlay) {
+        loadingOverlay.style.display = 'flex';
+      }
 
       // 將此部分繪製到最終 canvas（使用實際像素位置）
       finalCtx.drawImage(tempCanvas, 0, scrollTop * dpr);
@@ -121,6 +135,9 @@ async function captureFullPage() {
     // 恢復原始捲動位置
     window.scrollTo(originalScrollLeft, originalScrollTop);
     hideLoadingOverlay();
+
+    // 等待瀏覽器重新渲染（確保覆蓋層完全移除）
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     sendToEditor(finalCanvas);
   } catch (error) {
@@ -207,6 +224,17 @@ async function onAreaSelectionEnd(e) {
   const selectionBox = document.getElementById('scrollshot-selection-box');
   const rect = selectionBox.getBoundingClientRect();
 
+  // 如果選擇區域太小，取消截圖
+  if (rect.width < 10 || rect.height < 10) {
+    // 移除選擇覆蓋層
+    removeSelectionListeners();
+    if (selectionOverlay) {
+      selectionOverlay.remove();
+      selectionOverlay = null;
+    }
+    return;
+  }
+
   // 移除選擇覆蓋層
   removeSelectionListeners();
   if (selectionOverlay) {
@@ -214,10 +242,8 @@ async function onAreaSelectionEnd(e) {
     selectionOverlay = null;
   }
 
-  // 如果選擇區域太小，取消截圖
-  if (rect.width < 10 || rect.height < 10) {
-    return;
-  }
+  // 等待瀏覽器重新渲染（移除覆蓋層的視覺效果）
+  await new Promise(resolve => setTimeout(resolve, 100));
 
   // 擷取選定區域
   await captureArea(rect.left, rect.top, rect.width, rect.height);
@@ -318,6 +344,9 @@ async function onElementClick(e) {
 
   // 移除元素選擇監聽器
   removeElementListeners();
+
+  // 等待瀏覽器重新渲染（移除覆蓋層的視覺效果）
+  await new Promise(resolve => setTimeout(resolve, 100));
 
   // 擷取元素
   await captureElement(element, rect);

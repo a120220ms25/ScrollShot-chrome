@@ -21,6 +21,13 @@ let objects = [];
 // 當前編輯的對象
 let selectedObject = null;
 
+// 文字框相關
+let activeTextBox = null;
+let isDraggingText = false;
+let isResizingText = false;
+let textDragStart = { x: 0, y: 0 };
+let textBoxes = [];
+
 // 初始化
 document.addEventListener('DOMContentLoaded', async () => {
   // 獲取 canvas 元素
@@ -451,49 +458,229 @@ function boxBlur(imageData, radius) {
   return new ImageData(output, width, height);
 }
 
-// 顯示文字輸入框
+// 顯示文字輸入框（新版：直接在畫面上編輯）
 function showTextInput(x, y) {
-  const textBox = document.getElementById('textInputBox');
-  const textInput = document.getElementById('textInput');
+  // 創建新的可編輯文字框
+  const textBoxContainer = document.createElement('div');
+  textBoxContainer.className = 'editable-text-box';
+  textBoxContainer.style.cssText = `
+    position: absolute;
+    left: ${x * zoomLevel + drawingCanvas.offsetLeft}px;
+    top: ${y * zoomLevel + drawingCanvas.offsetTop}px;
+    min-width: 100px;
+    min-height: 30px;
+    border: 2px dashed ${currentColor};
+    background: rgba(255, 255, 255, 0.9);
+    padding: 5px;
+    cursor: move;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  `;
 
-  textBox.style.display = 'block';
-  textBox.style.left = (x * zoomLevel + drawingCanvas.offsetLeft) + 'px';
-  textBox.style.top = (y * zoomLevel + drawingCanvas.offsetTop) + 'px';
+  const textInput = document.createElement('div');
+  textInput.className = 'text-content';
+  textInput.contentEditable = true;
+  textInput.style.cssText = `
+    outline: none;
+    color: ${currentColor};
+    font-size: ${currentFontSize}px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    min-width: 90px;
+  `;
+  textInput.textContent = '輸入文字...';
 
-  textInput.value = '';
+  // 添加控制按鈕
+  const controls = document.createElement('div');
+  controls.className = 'text-controls';
+  controls.style.cssText = `
+    position: absolute;
+    bottom: -35px;
+    left: 0;
+    display: flex;
+    gap: 5px;
+    background: white;
+    padding: 5px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  `;
+
+  const confirmBtn = document.createElement('button');
+  confirmBtn.textContent = '✓';
+  confirmBtn.style.cssText = `
+    padding: 5px 10px;
+    background: #48bb78;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+  `;
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = '✕';
+  cancelBtn.style.cssText = `
+    padding: 5px 10px;
+    background: #f56565;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+  `;
+
+  // 添加調整大小的控制點
+  const resizeHandle = document.createElement('div');
+  resizeHandle.className = 'resize-handle';
+  resizeHandle.style.cssText = `
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    width: 10px;
+    height: 10px;
+    background: ${currentColor};
+    border: 1px solid white;
+    cursor: nwse-resize;
+    z-index: 1001;
+  `;
+
+  controls.appendChild(confirmBtn);
+  controls.appendChild(cancelBtn);
+  textBoxContainer.appendChild(textInput);
+  textBoxContainer.appendChild(controls);
+  textBoxContainer.appendChild(resizeHandle);
+  document.body.appendChild(textBoxContainer);
+
+  // 儲存數據
+  textBoxContainer.dataset.x = x;
+  textBoxContainer.dataset.y = y;
+  activeTextBox = textBoxContainer;
+
+  // 選中文字
   textInput.focus();
+  textInput.select();
 
-  // 儲存文字位置
-  textBox.dataset.x = x;
-  textBox.dataset.y = y;
+  // 事件處理
+  let dragStartX, dragStartY, boxStartX, boxStartY;
+  let resizeStartX, resizeStartY, boxStartWidth, boxStartHeight;
+
+  // 拖動文字框
+  textBoxContainer.addEventListener('mousedown', (e) => {
+    if (e.target === textInput || e.target === resizeHandle) return;
+
+    isDraggingText = true;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    const rect = textBoxContainer.getBoundingClientRect();
+    boxStartX = rect.left;
+    boxStartY = rect.top;
+    e.preventDefault();
+  });
+
+  // 調整大小
+  resizeHandle.addEventListener('mousedown', (e) => {
+    isResizingText = true;
+    resizeStartX = e.clientX;
+    resizeStartY = e.clientY;
+    const rect = textBoxContainer.getBoundingClientRect();
+    boxStartWidth = rect.width;
+    boxStartHeight = rect.height;
+    e.stopPropagation();
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', handleTextDrag);
+  document.addEventListener('mouseup', handleTextDragEnd);
+
+  // 確認按鈕
+  confirmBtn.addEventListener('click', () => {
+    confirmEditableText(textBoxContainer, textInput);
+  });
+
+  // 取消按鈕
+  cancelBtn.addEventListener('click', () => {
+    textBoxContainer.remove();
+    activeTextBox = null;
+  });
+
+  // Enter 確認，Esc 取消
+  textInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      textBoxContainer.remove();
+      activeTextBox = null;
+    }
+  });
+
+  function handleTextDrag(e) {
+    if (isDraggingText) {
+      const dx = e.clientX - dragStartX;
+      const dy = e.clientY - dragStartY;
+      textBoxContainer.style.left = (boxStartX + dx) + 'px';
+      textBoxContainer.style.top = (boxStartY + dy) + 'px';
+    } else if (isResizingText) {
+      const dx = e.clientX - resizeStartX;
+      const dy = e.clientY - resizeStartY;
+      const newWidth = Math.max(100, boxStartWidth + dx);
+      const newHeight = Math.max(30, boxStartHeight + dy);
+      textBoxContainer.style.width = newWidth + 'px';
+      textBoxContainer.style.height = newHeight + 'px';
+    }
+  }
+
+  function handleTextDragEnd() {
+    isDraggingText = false;
+    isResizingText = false;
+  }
 }
 
-// 確認文字輸入
-function confirmText() {
-  const textBox = document.getElementById('textInputBox');
-  const textInput = document.getElementById('textInput');
-  const text = textInput.value.trim();
+// 確認可編輯文字
+function confirmEditableText(textBoxContainer, textInput) {
+  const text = textInput.textContent.trim();
 
-  if (text) {
-    const x = parseFloat(textBox.dataset.x);
-    const y = parseFloat(textBox.dataset.y);
+  if (text && text !== '輸入文字...') {
+    // 計算實際位置（考慮縮放）
+    const rect = textBoxContainer.getBoundingClientRect();
+    const canvasRect = drawingCanvas.getBoundingClientRect();
 
-    // 繪製文字
+    const x = (rect.left - canvasRect.left) / zoomLevel;
+    const y = (rect.top - canvasRect.top + 20) / zoomLevel; // +20 調整基線
+
+    // 繪製文字到主畫布
     mainCtx.fillStyle = currentColor;
     mainCtx.font = `${currentFontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
-    mainCtx.fillText(text, x, y);
+
+    // 處理多行文字
+    const lines = text.split('\n');
+    const lineHeight = currentFontSize * 1.2;
+
+    lines.forEach((line, index) => {
+      mainCtx.fillText(line, x, y + (index * lineHeight));
+    });
 
     // 保存狀態
     saveState();
   }
 
-  textBox.style.display = 'none';
+  // 移除文字框
+  textBoxContainer.remove();
+  activeTextBox = null;
+}
+
+// 確認文字輸入（保留舊的接口）
+function confirmText() {
+  if (activeTextBox) {
+    const textInput = activeTextBox.querySelector('.text-content');
+    confirmEditableText(activeTextBox, textInput);
+  }
 }
 
 // 取消文字輸入
 function cancelText() {
-  const textBox = document.getElementById('textInputBox');
-  textBox.style.display = 'none';
+  if (activeTextBox) {
+    activeTextBox.remove();
+    activeTextBox = null;
+  }
 }
 
 // 保存狀態到歷史記錄
